@@ -3,9 +3,14 @@ name = "rustwf"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 clap = "3.2.5"
-csv = "1.1.6"
-rand = "0.8.5"
+rand = {version = "0.8.5", features = ["small_rng"]}
+
+[lib]
+name = "librustwf"
+path = "src/lib.rs"
+
+[[bin]]
+name = "rustwf"
+path = "src/rustwf.rs"
