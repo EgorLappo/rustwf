@@ -22,6 +22,8 @@ pub mod sim {
         for i in 0..num_generations {
             result[i] = iteration(&mut population, &mut rng);
         }
+
+        println!("{:?}", result);
     }
 
     fn binomial_sample(buffer: &mut Vec<f64>, p: f64, rng: &mut SmallRng) {
@@ -73,8 +75,7 @@ pub mod sim {
 }
 
 pub mod manager {
-    use rand::{Rng, SeedableRng};
-    use rand::rngs::SmallRng;
+    use rand::prelude::*;
     use std::path::PathBuf;
 
     use crate::sim::run;
