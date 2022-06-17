@@ -1,6 +1,7 @@
 pub mod sim {
     use rand::{Rng, SeedableRng};
     use rand::rngs::SmallRng;
+    use std::path::PathBuf;
 
     pub fn run(iteration: Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64>, num_generations: usize, n: usize, p_init: f64, seed: u64) {
         let mut population = vec![0.0; n];
@@ -68,5 +69,17 @@ pub mod sim {
             binomial_sample(population, p_next, rng);
             p
         })
+    }
+}
+
+pub mod manager {
+    use rand::{Rng, SeedableRng};
+    use rand::rngs::SmallRng;
+    use std::path::PathBuf;
+
+    use crate::sim::run;
+
+    pub fn launch(iteration: Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64>, num_generations: usize, n: usize, num_rep: usize, p_init: f64, output_folder: &PathBuf, num_threads: usize, seed: u64) {
+        run(iteration, num_generations, n, p_init, seed);
     }
 }
