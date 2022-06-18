@@ -5,7 +5,7 @@ pub mod sim {
     use std::error::Error;
     use csv::Writer;    
 
-    pub fn run(iteration: Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64>, num_generations: usize, n: usize, p_init: f64, seed: u64, output_folder: &PathBuf) {
+    pub fn run(iteration: &Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64>, num_generations: usize, n: usize, p_init: f64, seed: u64, output_folder: &PathBuf) {
         let mut population = vec![0.0; n];
         let mut result = vec![0.0; num_generations];
     
@@ -98,6 +98,18 @@ pub mod manager {
     use crate::sim::run;
 
     pub fn launch(iteration: Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64>, num_generations: usize, n: usize, num_rep: usize, p_init: f64, output_folder: &PathBuf, num_threads: usize, seed: u64) {
-        run(iteration, num_generations, n, p_init, seed, output_folder);
+        if num_threads == 1 {
+            // no parallelism
+            let mut rng = SmallRng::seed_from_u64(seed);
+
+            for _ in 0..num_rep {
+                let sim_seed: u64 = rng.gen_range(100000..999999);
+                run(&iteration, num_generations, n, p_init, sim_seed, output_folder);
+            }
+
+        } else {
+            ()
+        }
+
     }
 }
