@@ -2,8 +2,10 @@ pub mod sim {
     use rand::{Rng, SeedableRng};
     use rand::rngs::SmallRng;
     use std::path::PathBuf;
+    use std::error::Error;
+    use csv::Writer;    
 
-    pub fn run(iteration: Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64>, num_generations: usize, n: usize, p_init: f64, seed: u64) {
+    pub fn run(iteration: Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64>, num_generations: usize, n: usize, p_init: f64, seed: u64, output_folder: &PathBuf) {
         let mut population = vec![0.0; n];
         let mut result = vec![0.0; num_generations];
     
@@ -23,7 +25,22 @@ pub mod sim {
             result[i] = iteration(&mut population, &mut rng);
         }
 
-        println!("{:?}", result);
+        write_result(&result, seed, output_folder).expect("Unable to write the simulation with id {seed} to .csv!");
+    }
+
+    fn write_result(result: &Vec<f64>, seed: u64, output_folder: &PathBuf) -> Result<(), Box<dyn Error>> {
+        let mut filename = output_folder.clone();
+        filename.set_file_name(seed.to_string());
+        filename.set_extension("csv");
+
+        let mut wtr = Writer::from_path(filename)?;
+        wtr.write_record(&["generation", "frequency"])?;
+
+        for (i, x) in result.iter().enumerate() {
+            wtr.write_record(&[(i+1).to_string(), x.to_string()])?;
+        }
+        wtr.flush()?;
+        Ok(())
     }
 
     fn binomial_sample(buffer: &mut Vec<f64>, p: f64, rng: &mut SmallRng) {
@@ -81,6 +98,6 @@ pub mod manager {
     use crate::sim::run;
 
     pub fn launch(iteration: Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64>, num_generations: usize, n: usize, num_rep: usize, p_init: f64, output_folder: &PathBuf, num_threads: usize, seed: u64) {
-        run(iteration, num_generations, n, p_init, seed);
+        run(iteration, num_generations, n, p_init, seed, output_folder);
     }
 }

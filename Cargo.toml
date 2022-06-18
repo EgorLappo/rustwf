@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 clap = "3.2.5"
+csv = "1.1.6"
 rand = {version = "0.8.5", features = ["small_rng"]}
 
 [lib]
