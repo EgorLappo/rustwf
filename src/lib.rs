@@ -30,6 +30,7 @@ pub mod sim {
         write_result(&result, seed, output_folder).expect("Unable to write the simulation with id {seed} to .csv!");
     }
 
+    // helper functon to do make the types match in the parallel case
     pub fn run_arc(iteration: Arc<Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>>, num_generations: usize, n: usize, p_init: f64, seed: u64, output_folder: &PathBuf) {
         run(&*iteration, num_generations, n, p_init, seed, output_folder)
     }
@@ -124,10 +125,6 @@ pub mod manager {
 
             for _ in 0..num_rep {
                 let sim_seed: u64 = rng.gen_range(100000..999999);
-                // let output_folder = output_folder.clone();
-                // pool.execute(|| {                
-                //     run_arc(Arc::clone(&iteration), num_generations, n, p_init, sim_seed, &output_folder);
-                // })ca
                 pool.execute(closure!(clone iteration, move num_generations, move n, move p_init, move sim_seed, clone output_folder, || {                
                         run_arc(iteration, num_generations, n, p_init, sim_seed, &output_folder);
                     } 
