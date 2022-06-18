@@ -1,6 +1,8 @@
 # `rustwf`: Wright-Fisher-type simulations in Rust
 
-I have tried to adapt some simple simulation I use in my research ([FPM_diffusion](https://github.com/EgorLappo/FPM_diffusion)) into a Rust program. As this is mostly a learning project for me, I have tried to use several features of the language that are most probably not the most effective and necessary. If, for some reason, you are interested in this, comments are welcome!
+I have tried to adapt some simple simulation I use in my research ([FPM_diffusion](https://github.com/EgorLappo/FPM_diffusion)) into a Rust program. As this is mostly a learning project for me, I have tried to use several features of the language that are most probably not the most effective and necessary. Still, single-threaded performance of this code is 25x faster than the naive `python` implementation I have previously been using.
+
+If, for some reason, you are interested in this, comments are welcome!
 
 ## Usage
 
