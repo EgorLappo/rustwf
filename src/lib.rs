@@ -7,7 +7,8 @@ pub mod sim {
     use rand::rngs::SmallRng;
     use csv::Writer;    
 
-    pub fn run(iteration: &Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>, num_generations: usize, n: usize, p_init: f64, seed: u64, output_folder: &PathBuf) {
+    /// function to run a single simulation in a single thread
+    pub fn run(iteration: &Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>, num_generations: usize, n: usize, p_init: f64, to_fixation: bool, seed: u64, output_folder: &PathBuf) {
         let mut population = vec![0.0; n];
         let mut result = vec![0.0; num_generations];
     
@@ -25,20 +26,28 @@ pub mod sim {
         // and produce the next generation
         for i in 0..num_generations {
             result[i] = iteration(&mut population, &mut rng);
+            // if we simulate to fixation, stop here and truncate the result vector
+            if to_fixation && ((result[i] == 0.0) || result[i] == 1.0) {
+                result = result[0..i].to_vec();
+                break;
+            }
         }
 
-        write_result(&result, seed, output_folder).expect("Unable to write the simulation with id {seed} to .csv!");
+        write_result(result, seed, output_folder).expect("Unable to write the simulation with id {seed} to .csv!");
     }
 
-    // helper functon to do make the types match in the parallel case
-    pub fn run_arc(iteration: Arc<Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>>, num_generations: usize, n: usize, p_init: f64, seed: u64, output_folder: &PathBuf) {
-        run(&*iteration, num_generations, n, p_init, seed, output_folder)
+    /// wrapper functon to do make the types match in the parallel case
+    pub fn run_arc(iteration: Arc<Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>>, num_generations: usize, n: usize, p_init: f64, to_fixation: bool, seed: u64, output_folder: &PathBuf) {
+        run(&*iteration, num_generations, n, p_init, to_fixation, seed, output_folder)
     }
  
-    fn write_result(result: &Vec<f64>, seed: u64, output_folder: &PathBuf) -> Result<(), Box<dyn Error>> {
+    /// writes the result to a given folder as a .csv with two columns; the filename is given by the simulation seed
+    fn write_result(result: Vec<f64>, seed: u64, output_folder: &PathBuf) -> Result<(), Box<dyn Error>> {
         let mut filename = output_folder.clone();
-        filename.set_file_name(seed.to_string());
+        filename.push(seed.to_string());
         filename.set_extension("csv");
+
+        println!("{:?}", filename);
 
         let mut wtr = Writer::from_path(filename)?;
         wtr.write_record(&["generation", "frequency"])?;
@@ -50,6 +59,7 @@ pub mod sim {
         Ok(())
     }
 
+    /// simple binomial sampler that writes the results in a given buffer
     fn binomial_sample(buffer: &mut Vec<f64>, p: f64, rng: &mut SmallRng) {
         for i in 0..buffer.len() {
             let x: f64 = rng.gen();
@@ -61,6 +71,9 @@ pub mod sim {
         }
     }
 
+    // ----------- iteration functions -----------
+
+    /// standard (netural) Wrght-Fisher simulation, see Ewens (2004) book, chapters 2, 3
     pub fn wf() -> Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>  {
         Box::new(|population: &mut Vec<f64>, rng: &mut SmallRng| {
             let p: f64 = population.iter().sum::<f64>()/population.len() as f64;
@@ -70,6 +83,7 @@ pub mod sim {
         )
     }
 
+    /// Wrght-Fisher simulation with selection, see Ewens (2004) book, chapters 2, 3
     pub fn wf_selection(s: f64, h: f64) -> Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>  {
         Box::new(move |population: &mut Vec<f64>, rng: &mut SmallRng| {
             let p: f64 = population.iter().sum::<f64>()/population.len() as f64;
@@ -79,6 +93,7 @@ pub mod sim {
         })
     }
 
+    /// FPM of conformist transition, n=3, see Lappo, Denton, and Feldman (2022)
     pub fn fpm_conformity_3rm(s: f64, d: f64) -> Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>  {
         Box::new(move |population: &mut Vec<f64>, rng: &mut SmallRng| {
             let p: f64 = population.iter().sum::<f64>()/population.len() as f64;
@@ -88,6 +103,7 @@ pub mod sim {
         })
     }
 
+    /// FPM of conformist transition, n=5, see Lappo, Denton, and Feldman (2022)
     pub fn fpm_conformity_5rm(s: f64, d3: f64, d4: f64) -> Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>  {
         Box::new(move |population: &mut Vec<f64>, rng: &mut SmallRng| {
             let p: f64 = population.iter().sum::<f64>()/population.len() as f64;
@@ -98,6 +114,8 @@ pub mod sim {
     }
 }
 
+/// module containing the funuctionality to launch simulations in various ways
+/// currently can run them either in a single thread or in parallel
 pub mod manager {
     use std::path::PathBuf;
     use std::sync::Arc;
@@ -108,25 +126,35 @@ pub mod manager {
 
     use crate::sim::*;
 
-    pub fn launch(iteration: Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>, num_generations: usize, n: usize, num_rep: usize, p_init: f64, output_folder: &PathBuf, num_threads: usize, seed: u64) {
+    /// launches all of the simulations in a given number of threads
+    /// note that regardless of the number of threads, the seeds for each individual simulation are the same,
+    /// so that the results are always reproducible
+    pub fn launch(iteration: Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>, num_generations: usize, n: usize, num_rep: usize, p_init: f64, to_fixation: bool, output_folder: &PathBuf, num_threads: usize, seed: u64) {
         if num_threads == 1 {
-            // no parallelism
+            // no parallelism, just do all simulations one by one
             let mut rng = SmallRng::seed_from_u64(seed);
 
             for _ in 0..num_rep {
                 let sim_seed: u64 = rng.gen_range(100000..999999);
-                run(&iteration, num_generations, n, p_init, sim_seed, output_folder);
+                run(&iteration, num_generations, n, p_init, to_fixation, sim_seed, output_folder);
             }
         } else {
             // parallel launch 
+            // in this case, we need to worry about various precautions that rust enforces, 
+            // since we want to pass the same boxed closure to all threads
+
             let pool = ThreadPool::new(num_threads);
             let mut rng = SmallRng::seed_from_u64(seed);
+            // i am not sure this is necessary, but rust really complained if i didn't wrap the closure with Arc
             let iteration = Arc::new(iteration);
 
             for _ in 0..num_rep {
                 let sim_seed: u64 = rng.gen_range(100000..999999);
+                // i use the closure crate/macro so that it's clear what is done with each argument
+                // i.e. numbers are moved, but the Arc'd boxed closure is copied
+                // (if i didn't copy the iteration closure, i think i would have ran into the same problem as with GIL in python..., but i am not sure)
                 pool.execute(closure!(clone iteration, move num_generations, move n, move p_init, move sim_seed, clone output_folder, || {                
-                        run_arc(iteration, num_generations, n, p_init, sim_seed, &output_folder);
+                        run_arc(iteration, num_generations, n, p_init, to_fixation, sim_seed, &output_folder);
                     } 
                 ))
             }
