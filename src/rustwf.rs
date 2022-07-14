@@ -43,6 +43,11 @@ fn main() {
             let d4: f64 = *sub_m.get_one("DFOUR").unwrap();
             manager::launch(sim::fpm_conformity_5rm(s, d3, d4), num_generations, n, num_rep, p, to_fixation, output_folder, num_threads, seed);
         },
+        Some(("fdslin", sub_m)) => {
+            let a: f64 = *sub_m.get_one("A").unwrap();
+            let b: f64 = *sub_m.get_one("B").unwrap();
+            manager::launch(sim::fds_linear(a, b), num_generations, n, num_rep, p, to_fixation, output_folder, num_threads, seed);
+        },
         _ => unreachable!("The simulation type you requested is not available or not yet implemented"),
     }
 }

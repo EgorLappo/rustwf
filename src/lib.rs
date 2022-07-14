@@ -140,6 +140,15 @@ pub mod sim {
             p
         })
     }
+
+    pub fn fds_linear(a: f64, b: f64) -> Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send> {
+        Box::new(move |population: &mut Vec<f64>, rng: &mut SmallRng| {
+            let p: f64 = population.iter().sum::<f64>()/population.len() as f64;
+            let p_next = p*(-1. - 2.*(b-1.)*p - (1. + a - 2.*b)*p*p)/((1. + 2.*b)*(-1. + p)*p + a*(-1. + 3.*p - 3.*p*p));
+            binomial_sample(population, p_next, rng);
+            p
+        })
+    }
 }
 
 /// module containing the funuctionality to launch simulations in various ways
