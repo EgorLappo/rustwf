@@ -75,8 +75,6 @@ pub mod sim {
         filename.push(seed.to_string());
         filename.set_extension("csv");
 
-        println!("{:?}", filename);
-
         let mut wtr = Writer::from_path(filename)?;
         wtr.write_record(&["generation", "frequency"])?;
 
