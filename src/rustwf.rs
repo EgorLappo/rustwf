@@ -17,7 +17,6 @@ fn main() {
     let num_rep: usize = *m.get_one("rep").unwrap();
     let num_threads: usize = *m.get_one("threads").unwrap();
     let output_folder: &PathBuf = m.get_one("output").unwrap();
-
     let to_fixation: bool = *m.get_one("fixation").unwrap();
 
     // match on the subcommand, i.e. the simulation type

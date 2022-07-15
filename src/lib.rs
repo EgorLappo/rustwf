@@ -11,7 +11,7 @@ pub mod sim {
     pub fn run(iteration: &Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>, num_generations: usize, n: usize, p_init: f64, seed: u64, output_folder: &PathBuf) {
         let mut population = vec![0.0; n];
         let mut result = vec![0.0; num_generations];
-    
+
         let init_count = (p_init*n as f64) as usize;
     
         // fill the parental generation with values
@@ -42,9 +42,10 @@ pub mod sim {
         for i in 0..init_count {
             population[i] = 1.0;
         }
+
         // seed the RNG
         let mut rng = SmallRng::seed_from_u64(seed);
-    
+
         // *main loop*:
         // at each step, record the current state of the population into the result vector,
         // and produce the next generation
@@ -52,7 +53,7 @@ pub mod sim {
             result[i] = iteration(&mut population, &mut rng);
             // if we simulate to fixation, stop here and truncate the result vector
             if (result[i] <= 0.0) || result[i] >= 1.0 {
-                result = result[0..i].to_vec();
+                result = result[0..(i+1)].to_vec();
                 break;
             }
         }
@@ -63,9 +64,9 @@ pub mod sim {
     /// wrapper functon to do make the types match in the parallel case
     pub fn run_arc(iteration: Arc<Box<dyn Fn(&mut Vec<f64>, &mut SmallRng) -> f64  + Sync + Send>>, num_generations: usize, n: usize, p_init: f64, to_fixation: bool, seed: u64, output_folder: &PathBuf) {
         if to_fixation {
-            run(&*iteration, num_generations, n, p_init, seed, output_folder);
-        } else {
             run_fix(&*iteration, num_generations, n, p_init, seed, output_folder);
+        } else {
+            run(&*iteration, num_generations, n, p_init, seed, output_folder);
         }
     }
  
@@ -172,9 +173,9 @@ pub mod manager {
             for _ in 0..num_rep {
                 let sim_seed: u64 = rng.gen_range(100000..999999);
                 if to_fixation {
-                    run(&iteration, num_generations, n, p_init, sim_seed, output_folder);
-                } else {
                     run_fix(&iteration, num_generations, n, p_init, sim_seed, output_folder);
+                } else {
+                    run(&iteration, num_generations, n, p_init, sim_seed, output_folder);
                 }
             }
         } else {
