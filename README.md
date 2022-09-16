@@ -6,6 +6,8 @@ If, for some reason, you are interested in this, comments are welcome!
 
 ## Usage
 
+To compile and create an executable, first make sure you have the [Rust toolchain](https://rustup.rs) installed on your computer. Then, run `cargo build --release && cp target/release/rustwf .` to compile the executable and move it to project root.
+
 After compiling the program, the usage is nicely described by the CLI interface. Typing `./rustwf help`, you will see the following message:
 
 ```
