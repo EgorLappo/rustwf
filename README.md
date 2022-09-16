@@ -9,7 +9,7 @@ If, for some reason, you are interested in this, comments are welcome!
 After compiling the program, the usage is nicely described by the CLI interface. Typing `./rustwf help`, you will see the following message:
 
 ```
-rustwf 0.1.0
+rustwf 0.1.1
 Egor Lappo, egor@ccrma.stanford.edu
 Wright-Fisher type simulations written in pure rust
 
@@ -44,11 +44,17 @@ OPTIONS:
     -V, --version
             Print version information
 
+    -x, --fixation
+            simulate to fixation, when frequency is first 0.0 or 1.0 since (in this case the value
+            of the -g argument is an upper limit on the simulation length, so set it high)
+
 SUBCOMMANDS:
     conf3rm        Simulate the finite population in which a cultural trait is transmitted with
                        an (anti-)conformist bias and n=3 role models
     conf5rm        Simulate the finite population in which a cultural trait is transmitted with
                        an (anti-)conformist bias and n=5 role models
+    fdslin         Simulate the diploid population with an allele under linear
+                       frequency-dependent selection (symmetric model from Altenberg (1991))
     help           Print this message or the help of the given subcommand(s)
     wf             Simulate neutral Wright-Fisher model
     wfSelection    Simulate the Wright-Fisher model with selection
