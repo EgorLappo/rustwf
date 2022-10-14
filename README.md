@@ -6,6 +6,8 @@ If, for some reason, you are interested in this, comments are welcome!
 
 ## Usage
 
+To compile and create an executable, first make sure you have the [Rust toolchain](https://rustup.rs) installed on your computer. Then, run `cargo build --release && cp target/release/rustwf .` to compile the executable and move it to project root.
+
 After compiling the program, the usage is nicely described by the CLI interface. Typing `./rustwf help`, you will see the following message:
 
 ```
@@ -65,6 +67,6 @@ Essentially, you input all of the essential parameters and also choose the simul
 ## Notes
 
 * The program is fully deterministic if the same seed is provided to it. 
-* The output is saved as a `.csv` file with the name of the file being the seed used in that particular run. It also serves as a unique identifier. 
-* In my workflow, I name the folders according to the simulation parameters to organize the simulations.
-* You can easily extend the program to other types of simulation: you need to add your iteration function to the `sim` module (follow existing examples, the function has to return a boxes closure that would be called at each generation step), and extending the `clap` CLI interface description.
+* The output is saved as a `.csv` file in the output folder. The name of the `.csv` file is the seed used in that particular run. In my workflow, I create the folders according to the simulation parameters I want to simulate, and then run `rustwf` with corresponding parameters. 
+* You can easily extend the program to other types of simulation: you need to add your iteration function to the `sim` module in `lib.rs`, then extend the `clap` CLI interface description in `cli.rs`, and finally add a pattern match on the new argument in `rustwf.rs`.
+
