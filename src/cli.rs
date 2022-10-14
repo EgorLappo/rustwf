@@ -2,7 +2,6 @@ use std::path::PathBuf;
 
 use clap::*;
 
-
 pub fn get_cli() -> ArgMatches {
     let m = Command::new("rustwf")
             .author("Egor Lappo, egor@ccrma.stanford.edu")
