@@ -151,7 +151,7 @@ pub mod sim {
         })
     }
 
-    /// FPM of conformist transition, n=3, see Lappo, Denton, and Feldman (2022)
+    /// FPM of conformist transmission, n=3, see Lappo, Denton, and Feldman (2022)
     pub fn fpm_conformity_3rm(s: f64, d: f64) -> IterFunction {
         Box::new(move |population: &mut Vec<f64>, rng: &mut SmallRng| {
             let p: f64 = population.iter().sum::<f64>() / population.len() as f64;
@@ -162,7 +162,7 @@ pub mod sim {
         })
     }
 
-    /// FPM of conformist transition, n=5, see Lappo, Denton, and Feldman (2022)
+    /// FPM of conformist transmission, n=5, see Lappo, Denton, and Feldman (2022)
     pub fn fpm_conformity_5rm(s: f64, d3: f64, d4: f64) -> IterFunction {
         Box::new(move |population: &mut Vec<f64>, rng: &mut SmallRng| {
             let p: f64 = population.iter().sum::<f64>() / population.len() as f64;
