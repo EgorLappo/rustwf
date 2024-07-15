@@ -255,7 +255,6 @@ pub mod manager {
                 let sim_seed: u64 = rng.gen_range(100000..999999);
                 // i use the closure crate/macro so that it's clear what is done with each argument
                 // i.e. numbers are moved, but the Arc'd boxed closure is copied
-                // (if i didn't copy the iteration closure, i think i would have ran into the same problem as with GIL in python..., but i am not sure)
                 pool.execute(closure!(clone iteration, move num_generations, move n, move p_init, move sim_seed, clone output_folder, || {
                         run_arc(iteration, num_generations, n, p_init, to_fixation, sim_seed, &output_folder);
                     }
